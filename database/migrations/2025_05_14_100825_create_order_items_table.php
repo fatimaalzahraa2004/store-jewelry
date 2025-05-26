@@ -11,21 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('carts', function (Blueprint $table) {
-            $table->id(); // cart_id
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('product_id');
+        Schema::create('order_items', function (Blueprint $table) {
+            $table->id('order_item_id'); // Orders_Items_id
+            $table->unsignedBigInteger('order_id'); // مفتاح الطلب
+            $table->unsignedBigInteger('product_id'); // مفتاح المنتج
             $table->integer('quantity')->default(1);
-                $table->decimal('total_price', 10, 2)->nullable(); // الحقل الجديد
-
+            $table->decimal('total_price', 10, 2);
             $table->timestamp('added_time')->useCurrent();
             $table->timestamps();
-        
+
             // العلاقات
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('order_id')->references('id')->on('orders')->onDelete('cascade');
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
         });
-        
     }
 
     /**
@@ -33,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('carts');
+        Schema::dropIfExists('order_items');
     }
 };

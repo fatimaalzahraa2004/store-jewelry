@@ -13,8 +13,17 @@ return new class extends Migration
     {
         Schema::create('ratings', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('product_id');
+            $table->decimal('rating_value', 2, 1)->check('rating_value >= 1.0 and rating_value <= 5.0');
+            $table->text('comment')->nullable();
             $table->timestamps();
+        
+            // العلاقات
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
         });
+        
     }
 
     /**
