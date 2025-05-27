@@ -3100,18 +3100,7 @@ class CheckRole
 }
 ```
 
-**3. تسجيل Middleware في `app/Http/Kernel.php`:**
 
-أضف السطر التالي إلى مصفوفة `$routeMiddleware`:
-
-```php
-// app/Http/Kernel.php
-
-protected $routeMiddleware = [
-    // ...
-    'checkRole' => \App\Http\Middleware\CheckRole::class,
-];
-```
 
 الآن يمكنك استخدام `->middleware('checkRole:مدير')` أو `->middleware('checkRole:بائع')` في مساراتك أو في المتحكمات كما فعلت.
 
