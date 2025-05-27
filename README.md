@@ -6297,3 +6297,119 @@ php artisan make:view admin.product_types.edit
 
 
 ---
+بالتأكيد! سأقوم بإعادة بناء ملف `UsersTableSeeder` ليتمكن من إنشاء مستخدمين متنوعين (مدير، بائع، مشتري) بشكل أكثر فعالية، مع الالتزام بالـ Model الخاص بك وتضمين جميع الحقول اللازمة.
+
+هذه النسخة ستكون متوافقة مع Laravel 10/11/12 وتستخدم `User::create()` التي تتفاعل بشكل أفضل مع الـ Model، وتأخذ في الاعتبار الحقول الجديدة مثل `first_name`, `last_name`, `username`, `gender`, `birth_date`, و `role`.
+
+**ملاحظة:** تأكد أنك قمت بتعديل الـ `User` Model الخاص بك كما اقترحت سابقاً ليشمل دوال `isAdmin()`, `isSeller()`, `isBuyer()`, والعلاقات.
+
+---
+
+**`database/seeders/UsersTableSeeder.php`**
+
+```php
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\User; // استيراد نموذج المستخدم
+use Illuminate\Support\Facades\Hash;
+use Faker\Factory as Faker;
+use Illuminate\Support\Carbon; // لاستخدام Carbon لتحديد التواريخ
+
+class UsersTableSeeder extends Seeder
+{
+    /**
+     * تشغيل بذرة قاعدة البيانات.
+     */
+    public function run(): void
+    {
+        $faker = Faker::create('ar_SA'); // استخدام اللغة العربية للفيكر
+
+        // 1. إنشاء مستخدم مدير (Admin) للتحقق بسهولة
+        User::create([
+            'first_name' => 'مدير',
+            'last_name' => 'النظام',
+            'username' => 'admin',
+            'email' => 'admin@example.com',
+            'email_verified_at' => now(),
+            'password' => Hash::make('password'), // كلمة المرور الافتراضية 'password'
+            'gender' => 'ذكر',
+            'birth_date' => Carbon::parse('1990-01-01'), // تاريخ ميلاد محدد
+            'role' => 'مدير',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // 2. إنشاء مستخدم بائع (Seller) للتحقق بسهولة
+        User::create([
+            'first_name' => 'بائع',
+            'last_name' => 'المتجر',
+            'username' => 'seller',
+            'email' => 'seller@example.com',
+            'email_verified_at' => now(),
+            'password' => Hash::make('password'),
+            'gender' => 'أنثى',
+            'birth_date' => Carbon::parse('1995-05-10'),
+            'role' => 'بائع',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // 3. إنشاء مستخدم مشتري (Buyer - مستخدم عادي) للتحقق بسهولة
+        User::create([
+            'first_name' => 'مشتري',
+            'last_name' => 'نشيط',
+            'username' => 'buyer',
+            'email' => 'buyer@example.com',
+            'email_verified_at' => now(),
+            'password' => Hash::make('password'),
+            'gender' => 'ذكر',
+            'birth_date' => Carbon::parse('1992-11-20'),
+            'role' => 'مستخدم عادي',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // 4. إنشاء 47 مستخدمًا عشوائيًا (ليكون المجموع 50)
+        // توزيع الأدوار بشكل عشوائي (مثلاً: 70% مشتري، 30% بائع)
+        $rolesDistribution = array_merge(
+            array_fill(0, 33, 'مستخدم عادي'), // 33 مشتري
+            array_fill(0, 14, 'بائع')          // 14 بائع
+        );
+
+        foreach (range(1, 47) as $index) {
+            $gender = $faker->randomElement(['ذكر', 'أنثى']);
+            User::create([
+                'first_name' => $faker->firstName($gender === 'ذكر' ? 'male' : 'female'),
+                'last_name' => $faker->lastName(),
+                'username' => $faker->unique()->userName(),
+                'email' => $faker->unique()->safeEmail(),
+                'email_verified_at' => now(),
+                'password' => Hash::make('password'),
+                'gender' => $gender,
+                'birth_date' => $faker->dateTimeBetween('-60 years', '-18 years')->format('Y-m-d'), // تاريخ ميلاد بين 18 و 60 سنة مضت
+                'role' => $faker->randomElement($rolesDistribution),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+    }
+}
+```
+
+---
+
+**كيفية استخدام هذا الـ Seeder:**
+
+
+2.  **تشغيل الـ Migrations والـ Seeders:**
+    *   لإعادة بناء قاعدة البيانات من الصفر (حذف الجداول ثم إنشائها وتعبئتها بالبيانات الوهمية):
+        ```bash
+        php artisan migrate:fresh --seed
+        ```
+
+
+الآن سيكون لديك 3 مستخدمين محددين مسبقاً (مدير، بائع، مشتري) و47 مستخدماً عشوائياً آخرين، موزعين بين بائع ومشتري، مع بيانات كاملة ومتنوعة.
+
