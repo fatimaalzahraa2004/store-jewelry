@@ -14,22 +14,25 @@
                             @if ($product->album_photos && count($product->album_photos) > 0)
                                 @foreach ($product->album_photos as $key => $photo)
                                     <div class="carousel-item {{ $key == 0 ? 'active' : '' }}">
-                                        <img src="{{ asset('storage/' . $photo) }}" class="d-block w-100 rounded" alt="{{ $product->product_name }}" style="height: 400px; object-fit: contain;">
+                                        {{-- 🔴🔴🔴 إضافة الكلاس product-image-zoom 🔴🔴🔴 --}}
+                                        <img src="{{ asset('storage/' . $photo) }}" class="d-block w-100 rounded product-image-zoom" alt="{{ $product->product_name }}" style="height: 400px; object-fit: contain;">
                                     </div>
                                 @endforeach
                             @else
                                 <div class="carousel-item active">
-                                    <img src="{{ asset('images/placeholder.png') }}" class="d-block w-100 rounded" alt="صورة غير متوفرة" style="height: 400px; object-fit: contain;">
+                                    {{-- 🔴🔴🔴 إضافة الكلاس product-image-zoom 🔴🔴🔴 --}}
+                                    <img src="{{ asset('images/placeholder.png') }}" class="d-block w-100 rounded product-image-zoom" alt="صورة غير متوفرة" style="height: 400px; object-fit: contain;">
                                 </div>
                             @endif
                         </div>
                         @if ($product->album_photos && count($product->album_photos) > 1)
+                            {{-- 🔴🔴🔴 تعديل أزرار الكاروسيل لاستخدام الأيقونات المخصصة 🔴🔴🔴 --}}
                             <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
-                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="carousel-control-icon-custom"><i class="fas fa-chevron-left fa-2x"></i></span>
                                 <span class="visually-hidden">السابق</span>
                             </button>
                             <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
-                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="carousel-control-icon-custom"><i class="fas fa-chevron-right fa-2x"></i></span>
                                 <span class="visually-hidden">التالي</span>
                             </button>
                         @endif

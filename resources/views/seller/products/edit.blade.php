@@ -55,12 +55,15 @@
                                 <span class="invalid-feedback" role="alert"><strong>{{ $message }}</strong></span>
                             @enderror
                             <small class="form-text text-muted">الصيغ المدعومة: JPG, PNG, GIF, WEBP. الحد الأقصى للحجم: 5 ميجابايت للصورة الواحدة.</small>
-                            @if ($product->album_photos && count($product->album_photos) > 0)
+                            @if ($product->album_photos && count($product->album_photos) > 0) {{-- الـ accessor يضمن أنها مصفوفة الآن --}}
                                 <div class="mt-3">
                                     <h6>الصور الحالية:</h6>
                                     <div class="d-flex flex-wrap">
                                         @foreach ($product->album_photos as $photo)
-                                            <img src="{{ asset('storage/' . $photo) }}" class="img-thumbnail me-2 mb-2" style="width: 100px; height: 100px; object-fit: cover;" alt="صورة منتج">
+                                            {{-- 🔴🔴🔴 التحقق من أن العنصر سلسلة نصية (لا يزال مهماً لحماية العرض) 🔴🔴🔴 --}}
+                                            @if (is_string($photo) && !empty($photo))
+                                                <img src="{{ asset('storage/' . $photo) }}" class="img-thumbnail me-2 mb-2" style="width: 100px; height: 100px; object-fit: cover;" alt="صورة منتج">
+                                            @endif
                                         @endforeach
                                     </div>
                                     <small class="text-muted">ستحل الصور الجديدة محل الصور الحالية.</small>

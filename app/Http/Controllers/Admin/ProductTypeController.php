@@ -52,7 +52,7 @@ class ProductTypeController extends Controller
         // للـ API:
         // return response()->json(['message' => 'تم إضافة نوع المنتج بنجاح.', 'product_type' => new ProductTypeResource($productType)], 201);
         // للـ Web:
-        return redirect()->route('admin.product_types.index')->with('success', 'تم إضافة نوع المنتج بنجاح.');
+        return redirect()->route('admin.product-types.index')->with('success', 'تم إضافة نوع المنتج بنجاح.');
     }
 
     /**
@@ -85,7 +85,7 @@ class ProductTypeController extends Controller
         // للـ API:
         // return response()->json(['message' => 'تم تحديث نوع المنتج بنجاح.', 'product_type' => new ProductTypeResource($productType)]);
         // للـ Web:
-        return redirect()->route('admin.product_types.index')->with('success', 'تم تحديث نوع المنتج بنجاح.');
+        return redirect()->route('admin.product-types.index')->with('success', 'تم تحديث نوع المنتج بنجاح.');
     }
 
     /**
@@ -100,6 +100,6 @@ class ProductTypeController extends Controller
         // للـ API:
         // return response()->json(['message' => 'تم حذف نوع المنتج بنجاح.']);
         // للـ Web:
-        return redirect()->route('admin.product_types.index')->with('success', 'تم حذف نوع المنتج بنجاح.');
+        return redirect()->route('admin.product-types.index')->with('success', 'تم حذف نوع المنتج بنجاح.');
     }
 }

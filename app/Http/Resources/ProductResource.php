@@ -4,38 +4,30 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage; // لاستخدام تخزين الصور
+use Illuminate\Support\Facades\Storage;
+// لا حاجة لـ Arr هنا بعد الآن إذا كان الـ accessor في النموذج يقوم بالتسطيح
 
 class ProductResource extends JsonResource
 {
-    /**
-     * تحويل المورد إلى مصفوفة.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
         $photos = [];
-        if (is_array($this->album_photos)) {
-            foreach ($this->album_photos as $photoPath) {
-                // التأكد من أن المسار يبدأ بـ 'public/' أو ما يناسب إعداداتك
-                // وإرجاع الـ URL العام للصورة
+        // الـ accessor في Product model سيتكفل بتحويلها إلى مصفوفة نظيفة
+        // لذا هنا، فقط نأخذ كل مسار وننشئ URL له
+        foreach ($this->album_photos as $photoPath) {
+            // التحقق مهم جداً لأن album_photos قد تحتوي على مسارات غير موجودة أو قيم غير نصية
+            if (is_string($photoPath) && !empty($photoPath)) {
                 $photos[] = Storage::url($photoPath);
             }
         }
-        // أو إذا كنت تخزن المسارات الكاملة مباشرة في قاعدة البيانات
-        // $photos = is_array($this->album_photos) ? $this->album_photos : [];
-
 
         return [
             'id' => $this->id,
             'product_name' => $this->product_name,
             'price' => (float) $this->price,
-            // استخدام ProductTypeResource لتحويل بيانات النوع
-            'type' => new ProductTypeResource($this->whenLoaded('type')), // العلاقة هي 'type' وليس 'productType'
+            'type' => new ProductTypeResource($this->whenLoaded('type')),
             'album_photos' => $photos, // الآن سيحتوي على URLs قابلة للوصول
             'shape' => $this->shape,
-            // استخدام UserResource لتحويل بيانات المالك
             'owner' => new UserResource($this->whenLoaded('owner')),
             'status' => $this->status,
             'rating' => (float) $this->rating,

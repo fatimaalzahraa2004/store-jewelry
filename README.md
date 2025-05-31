@@ -2996,7 +2996,7 @@ class ProductTypeController extends Controller
         // للـ API:
         // return response()->json(['message' => 'تم إضافة نوع المنتج بنجاح.', 'product_type' => new ProductTypeResource($productType)], 201);
         // للـ Web:
-        return redirect()->route('admin.product_types.index')->with('success', 'تم إضافة نوع المنتج بنجاح.');
+        return redirect()->route('admin.product-types.index')->with('success', 'تم إضافة نوع المنتج بنجاح.');
     }
 
     /**
@@ -3029,7 +3029,7 @@ class ProductTypeController extends Controller
         // للـ API:
         // return response()->json(['message' => 'تم تحديث نوع المنتج بنجاح.', 'product_type' => new ProductTypeResource($productType)]);
         // للـ Web:
-        return redirect()->route('admin.product_types.index')->with('success', 'تم تحديث نوع المنتج بنجاح.');
+        return redirect()->route('admin.product-types.index')->with('success', 'تم تحديث نوع المنتج بنجاح.');
     }
 
     /**
@@ -3044,7 +3044,7 @@ class ProductTypeController extends Controller
         // للـ API:
         // return response()->json(['message' => 'تم حذف نوع المنتج بنجاح.']);
         // للـ Web:
-        return redirect()->route('admin.product_types.index')->with('success', 'تم حذف نوع المنتج بنجاح.');
+        return redirect()->route('admin.product-types.index')->with('success', 'تم حذف نوع المنتج بنجاح.');
     }
 }
 ```
@@ -6412,4 +6412,404 @@ class UsersTableSeeder extends Seeder
 
 
 الآن سيكون لديك 3 مستخدمين محددين مسبقاً (مدير، بائع، مشتري) و47 مستخدماً عشوائياً آخرين، موزعين بين بائع ومشتري، مع بيانات كاملة ومتنوعة.
+
+---
+
+حل المشاكل
+
+---
+
+
+المشكلة واضحة ومباشرة تماماً:
+
+الخطأ `Call to undefined relationship [ratings] on model [App\Models\Product].` يعني أنك تحاول الوصول إلى علاقة اسمها `ratings` على نموذج `Product` (كما يحدث في المتحكم `ProductController` عند استخدام `$product->load('ratings.user')`)، ولكن هذه العلاقة غير معرفة في ملف نموذج `Product.php`.
+
+**الحل:**
+
+عليك تعريف العلاقة `ratings` في نموذج `App\Models\Product.php`. المنتج الواحد يمكن أن يكون لديه العديد من التقييمات (Ratings)، لذا ستكون العلاقة من نوع `HasMany`.
+
+**1. قم بتعديل ملف `app/Models/Product.php`:**
+
+أضف الدالة التالية داخل كلاس `Product`:
+
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany; // ⬅️ تأكد من استيراد هذه السمة
+
+class Product extends Model
+{
+    protected $table = 'products';
+
+    protected $fillable = [
+        'product_name',
+        'price',
+        'type_id',
+        'album_photos',
+        'shape',
+        'owner_user_id',
+        'status',
+        'rating',
+        'weight',
+    ];
+
+    public $timestamps = true;
+
+    protected $casts = [
+        'price' => 'decimal:2',
+        'rating' => 'decimal:1',
+        'weight' => 'float',
+        'album_photos' => 'array', // في حال خزنتها بصيغة JSON
+    ];
+
+    // العلاقة مع نوع المنتج
+    public function type(): BelongsTo
+    {
+        return $this->belongsTo(ProductType::class, 'type_id');
+    }
+
+    // العلاقة مع مالك المنتج (المستخدم)
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'owner_user_id');
+    }
+
+    // 🔴🔴🔴 أضف هذه العلاقة الجديدة 🔴🔴🔴
+    // العلاقة مع التقييمات: كل منتج لديه العديد من التقييمات
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(Rating::class, 'product_id');
+    }
+}
+
+```
+
+**شرح العلاقة المضافة:**
+
+*   `public function ratings(): HasMany`: تعرّف دالة باسم `ratings` (وهو الاسم الذي تبحث عنه Laravel).
+*   `return $this->hasMany(Rating::class, 'product_id');`:
+    *   `$this->hasMany()`: تشير إلى أن نموذج `Product` يمكن أن يكون له `many` (العديد) من نماذج `Rating`.
+    *   `Rating::class`: هو اسم النموذج المرتبط بهذه العلاقة.
+    *   `'product_id'`: هو اسم المفتاح الأجنبي في جدول `ratings` الذي يشير إلى `id` المنتج. (في حالتك، هذا هو الافتراضي ولارافيل ستخمّنه بشكل صحيح حتى لو لم تذكره صراحة، لكن ذكره يزيد الوضوح).
+
+بعد إضافة هذه الدالة إلى نموذج `Product`، ستتمكن `ProductController` من تحميل العلاقة `ratings` بشكل صحيح.
+
+
+---
+
+
+بالتأكيد! سأقوم بتعديل صفحة `resources/views/auth/login.blade.php` لإضافة أزرار ملء البيانات السريع لحسابات الاختبار (المدير، البائع، المشتري). هذه الأزرار ستستخدم JavaScript لملء حقول البريد الإلكتروني وكلمة المرور.
+
+**ملاحظة هامة:**
+لتعمل الأزرار بشكل صحيح، تأكد أنك قمت بتضمين Font Awesome في ملف `layouts/app.blade.php` (وهو ما قمت به في الرد السابق):
+` <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">`
+
+---
+
+**المحتوى الجديد لملف `resources/views/auth/login.blade.php`:**
+
+```blade
+@extends('layouts.app')
+
+@section('content')
+<div class="container d-flex justify-content-center align-items-center min-vh-100" style="background-image: url('{{ asset('images/jewelry_bg.jpg') }}'); background-size: cover; background-position: center;">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-lg border-0 rounded-lg mt-5 bg-white bg-opacity-90 animate__animated animate__fadeInDown">
+            <div class="card-header bg-dark text-white text-center py-4">
+                <h3 class="font-weight-light my-2"><i class="fas fa-lock me-2"></i> {{ __('تسجيل الدخول') }}</h3>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ route('login') }}">
+                    @csrf
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">{{ __('البريد الإلكتروني') }}</label>
+                        <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
+                        @error('email')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                        @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">{{ __('كلمة المرور') }}</label>
+                        <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
+                        @error('password')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                        @enderror
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
+                        <label class="form-check-label" for="remember">
+                            {{ __('تذكرني') }}
+                        </label>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between mt-4 mb-3">
+                        @if (Route::has('password.request'))
+                            <a class="btn btn-link" href="{{ route('password.request') }}">
+                                {{ __('هل نسيت كلمة المرور؟') }}
+                            </a>
+                        @endif
+                        <button type="submit" class="btn btn-primary px-4 py-2">
+                            {{ __('تسجيل الدخول') }} <i class="fas fa-sign-in-alt ms-2"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <hr class="my-4">
+
+                <div class="text-center">
+                    <p class="text-muted mb-3 fw-bold">أو سجل دخول بسرعة باستخدام حسابات الاختبار:</p>
+                    <button type="button" class="btn btn-outline-danger btn-sm mb-2 w-100 d-flex align-items-center justify-content-center" data-email="admin@example.com" data-password="password" onclick="fillLoginFields(this)">
+                        <i class="fas fa-user-shield me-2"></i> دخول كـ <span class="fw-bold">مدير</span>
+                    </button>
+                    <button type="button" class="btn btn-outline-info btn-sm mb-2 w-100 d-flex align-items-center justify-content-center" data-email="seller@example.com" data-password="password" onclick="fillLoginFields(this)">
+                        <i class="fas fa-store me-2"></i> دخول كـ <span class="fw-bold">بائع</span>
+                    </button>
+                    <button type="button" class="btn btn-outline-success btn-sm w-100 d-flex align-items-center justify-content-center" data-email="buyer@example.com" data-password="password" onclick="fillLoginFields(this)">
+                        <i class="fas fa-shopping-bag me-2"></i> دخول كـ <span class="fw-bold">مشتري</span>
+                    </button>
+                </div>
+            </div>
+            <div class="card-footer text-center py-3">
+                <div class="small">ليس لديك حساب؟ <a href="{{ route('register') }}" class="fw-bold text-decoration-none">قم بإنشاء حساب!</a></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    function fillLoginFields(button) {
+        const email = button.dataset.email;
+        const password = button.dataset.password;
+
+        document.getElementById('email').value = email;
+        document.getElementById('password').value = password;
+
+        // يمكنك إزالة التعليق عن السطر التالي لتقديم النموذج تلقائيًا بعد الملء
+        // document.querySelector('form').submit();
+    }
+</script>
+@endpush
+@endsection
+```
+
+**التغييرات التي تم إجراؤها:**
+
+1.  **أزرار الملء السريع:**
+    *   تم إضافة ثلاثة أزرار (`<button type="button">`)، كل منها يمثل دور مستخدم (مدير، بائع، مشتري).
+    *   كل زر يحتوي على سمات `data-email` و `data-password` لتخزين بيانات تسجيل الدخول الخاصة بالحساب التجريبي.
+    *   تم استخدام `onclick="fillLoginFields(this)"` لتشغيل دالة JavaScript عند النقر على الزر.
+    *   تم تصفيف الأزرار لتكون جميلة وجذابة باستخدام كلاسات Bootstrap وأيقونات Font Awesome.
+
+2.  **دالة `fillLoginFields(button)` JavaScript:**
+    *   تم تعريف هذه الدالة في قسم `<script>` أسفل الصفحة (داخل `@push('scripts')` لضمان تحميلها بعد Bootstrap JS).
+    *   تستقبل هذه الدالة العنصر `button` الذي تم النقر عليه.
+    *   تصل إلى قيم البريد الإلكتروني وكلمة المرور من سمات `data-` الخاصة بالزر (`button.dataset.email` و `button.dataset.password`).
+    *   تقوم بملء حقلي `email` و `password` بالقيم المسترجعة.
+    *   تم تضمين تعليق حول إمكانية تقديم النموذج تلقائياً إذا أردت ذلك.
+
+3.  **تحسينات جمالية إضافية:**
+    *   إضافة أيقونات Font Awesome إلى عنوان الصفحة وزر تسجيل الدخول.
+    *   تعديلات طفيفة على الهوامش والخطوط لجعل المظهر العام أكثر أناقة.
+    *   تعديل لون `background-opacity-90` لجعل خلفية الكارد شفافة قليلاً فوق صورة الخلفية.
+
+هذا التصميم سيوفر تجربة استخدام ممتازة أثناء التطوير والاختبار، ويتوافق مع التصميم العام الجذاب الذي تستخدمه لموقعك.
+
+
+---
+
+تمام، هذا خطأ شائع جداً ويسهل حله!
+
+الخطأ `Call to undefined relationship [items] on model [App\Models\Order].` يعني أنك تحاول جلب علاقة اسمها `items` من نموذج `Order` (كما هو الحال في متحكم `AdminOrderController` عند استدعاء `Order::with('user', 'items.product.type')`)، ولكن هذه العلاقة **غير معرفة** في ملف نموذج `App\Models\Order.php`.
+
+**الحل:**
+
+عليك إضافة العلاقة `items` إلى نموذج `App\Models\Order.php`. الطلب الواحد (Order) يمكن أن يحتوي على العديد من عناصر الطلب (OrderItems)، لذا ستكون العلاقة من نوع `HasMany`.
+
+**1. قم بتعديل ملف `app/Models/Order.php`:**
+
+أضف الدالة التالية داخل كلاس `Order`:
+
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany; // ⬅️ تأكد من استيراد هذه السمة
+
+class Order extends Model
+{
+    protected $table = 'orders';
+
+    protected $fillable = [
+        'user_id',
+        'order_date',
+        'total_price',
+        'status',
+    ];
+
+    public $timestamps = true;
+
+    protected $casts = [
+        'order_date' => 'datetime',
+        'total_price' => 'decimal:2',
+    ];
+
+    // العلاقة مع المستخدم
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    // 🔴🔴🔴 أضف هذه العلاقة الجديدة 🔴🔴🔴
+    // العلاقة مع عناصر الطلب: كل طلب لديه العديد من عناصر الطلب
+    public function items(): HasMany
+    {
+        // 'order_id' هو المفتاح الأجنبي في جدول 'order_items' الذي يشير إلى 'id' الطلب
+        return $this->hasMany(OrderItem::class, 'order_id', 'id');
+    }
+}
+```
+
+**شرح العلاقة المضافة:**
+
+*   `public function items(): HasMany`: تعرّف دالة باسم `items`، وهو الاسم الذي تبحث عنه Laravel عند استخدام `with('items')`.
+*   `return $this->hasMany(OrderItem::class, 'order_id', 'id');`:
+    *   `$this->hasMany()`: تشير إلى أن نموذج `Order` يمكن أن يكون له `many` (العديد) من نماذج `OrderItem`.
+    *   `OrderItem::class`: هو اسم النموذج المرتبط بهذه العلاقة.
+    *   `'order_id'`: هو اسم المفتاح الأجنبي في جدول `order_items` الذي يربطه بجدول `orders`.
+    *   `'id'`: هو اسم المفتاح الأساسي في جدول `orders` الذي يتم الربط به. (يمكن لـ Laravel تخمين هذين المفتاحين بشكل صحيح عادةً إذا اتبعت الاتفاقيات، ولكن ذكرهما يزيد من الوضوح).
+
+بعد إضافة هذه الدالة إلى نموذج `Order`، ستتمكن المتحكمات مثل `Admin\OrderController` و `OrderController` (للمشتري) من تحميل العلاقة `items` بشكل صحيح، وبالتالي ستختفي هذه المشكلة.
+
+---
+استبدل كل
+
+
+```
+route('admin.product_types.index')
+```
+
+
+
+بالقيمة
+
+```
+route('admin.product-types.index')
+```
+
+
+
+---
+
+
+المشكلة واضحة جداً!
+
+الخطأ `Route [seller.dashboard] not defined.` يعني أن Laravel لا يستطيع العثور على مسار مسجل بالاسم `seller.dashboard`.
+
+لقد قمت بتعريف `Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');` ضمن مجموعة `admin`، مما يعني أن `admin.dashboard` هو المسار للوحة تحكم المدير.
+
+ولكنك لم تقم بتعريف مسار مماثل باسم `dashboard` ضمن مجموعة `seller`. بدلاً من ذلك، قمت بتعريف مسار `Route::resource('products', SellerProductController::class);`، والذي يُنشئ مسارات مثل `seller.products.index`، `seller.products.create`، إلخ.
+
+**السبب:**
+في `HomeController`، عند تسجيل الدخول كبائع، يحاول المتحكم توجيه المستخدم إلى `seller.dashboard`:
+
+```php
+    public function index()
+    {
+        if (Auth::user()->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        } elseif (Auth::user()->isSeller()) {
+            return redirect()->route('seller.dashboard'); // ⬅️ هذا هو الخطأ
+        } else { // المستخدم العادي (المشتري)
+            return view('home');
+        }
+    }
+```
+ولكن لا يوجد مسار اسمه `seller.dashboard` معرف في `web.php`.
+
+**الحل المقترح (والأكثر منطقية للبائع):**
+
+بما أن لوحة تحكم البائع الرئيسية التي قمنا بإنشائها هي في الغالب صفحة عرض منتجاته (`seller.products.index`)، فمن المنطقي أن نوجه البائع مباشرة إلى هذه الصفحة.
+
+**1. قم بتعديل ملف `app/Http/Controllers/HomeController.php`:**
+
+غيّر سطر التوجيه للبائع ليوجه إلى `seller.products.index` بدلاً من `seller.dashboard`:
+
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth; // تأكد من استيراد Auth
+
+class HomeController extends Controller
+{
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
+    /**
+     * Show the application dashboard.
+     *
+     * @return \Illuminate\Contracts\Support\Renderable
+     */
+    public function index()
+    {
+        if (Auth::user()->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        } elseif (Auth::user()->isSeller()) {
+            // 🔴🔴🔴 التعديل هنا 🔴🔴🔴
+            return redirect()->route('seller.products.index'); // توجيه البائع إلى قائمة منتجاته
+        } else { // المستخدم العادي (المشتري)
+            return view('home');
+        }
+    }
+}
+```
+
+**2. تعديل بسيط في `resources/views/layouts/app.blade.php`:**
+
+بما أننا أزلنا المسار `seller.dashboard`، يجب تحديث رابط لوحة البائع في شريط التنقل ليوجه إلى `seller.products.index` أيضاً:
+
+ابحث عن هذا السطر:
+```blade
+<a class="nav-link" href="{{ route('seller.dashboard') }}">{{ __('لوحة البائع') }} <i class="fas fa-store"></i></a>
+```
+وغيره إلى:
+```blade
+<a class="nav-link" href="{{ route('seller.products.index') }}">{{ __('لوحة البائع') }} <i class="fas fa-store"></i></a>
+```
+
+**لماذا هذا الحل هو الأفضل؟**
+
+*   **الكفاءة:** أنت تستخدم `SellerProductController` بالفعل لإدارة وعرض منتجات البائع، وهذا هو جوهر "لوحة تحكم" البائع. توجيهه مباشرة إلى هذه الصفحة يقلل من الحاجة لإنشاء متحكم أو طريقة جديدة فقط لعرض صفحة "لوحة تحكم" عامة قد تكون مكررة.
+*   **الاتساق:** الآن، المسار الذي يتم التوجيه إليه موجود بالفعل ومعرف.
+*   **المرونة:** لا يزال لديك ملف `resources/views/seller/dashboard.blade.php` الذي أنشأته. يمكنك استخدامه لعرض ملخصات وإحصائيات إذا أردت، وفي هذه الحالة، يمكنك تغيير الرابط في شريط التنقل من `seller.products.index` إلى `seller.dashboard` وتضيف مساراً لـ `seller.dashboard` في `web.php` إذا قررت فصلهما لاحقاً.
+
+بعد إجراء هذا التعديل في `HomeController.php` و `layouts/app.blade.php`، يجب أن تختفي المشكلة عند تسجيل الدخول كبائع.
+
+
+---
+
 

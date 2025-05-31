@@ -26,19 +26,20 @@ class OrderController extends Controller
         $query = Order::with('user', 'items.product.type');
 
         // يمكن إضافة فلاتر للمشرف (حسب الحالة، المستخدم، إلخ)
-        if ($request->has('status')) {
+        if ($request->filled('status')) { // ⬅️ استخدام filled() هنا أيضاً للاتساق
             $query->where('status', $request->status);
         }
-        if ($request->has('user_id')) {
+        if ($request->filled('user_id')) { // ⬅️ استخدام filled()
             $query->where('user_id', $request->user_id);
         }
 
+        // 🔴🔴🔴 التعديل هنا: إضافة شرط الترتيب 🔴🔴🔴
+        $query->orderBy('order_date', 'desc'); // ترتيب حسب تاريخ الطلب من الأحدث للأقدم
+        // أو إذا أردت حسب رقم الطلب (المفتاح الأساسي)
+        // $query->orderBy('id', 'desc'); // ترتيب حسب ID من الأكبر للأصغر
+
         $orders = $query->paginate(15);
 
-        // للـ API:
-        // return OrderResource::collection($orders);
-
-        // للـ Web:
         return view('admin.orders.index', compact('orders'));
     }
 
@@ -48,17 +49,11 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         $order->load('user', 'items.product.type');
-
-        // للـ API:
-        // return new OrderResource($order);
-
-        // للـ Web:
         return view('admin.orders.show', compact('order'));
     }
 
     /**
      * تحديث حالة طلب معين.
-     * (مثلاً: من 'جديد' إلى 'تم الدفع' بعد التحقق اليدوي، أو 'ملغي')
      */
     public function update(Request $request, Order $order)
     {
@@ -68,10 +63,6 @@ class OrderController extends Controller
 
         $order->status = $request->status;
         $order->save();
-
-        // للـ API:
-        // return response()->json(['message' => 'تم تحديث حالة الطلب بنجاح.', 'order' => new OrderResource($order)]);
-        // للـ Web:
         return redirect()->back()->with('success', 'تم تحديث حالة الطلب بنجاح.');
     }
 
@@ -80,11 +71,8 @@ class OrderController extends Controller
      */
     public function destroy(Order $order)
     {
-        $order->delete(); // سيتم حذف OrderItems المرتبطة تلقائياً بسبب onDelete('cascade')
-
-        // للـ API:
-        // return response()->json(['message' => 'تم حذف الطلب بنجاح.']);
-        // للـ Web:
-        return redirect()->back()->with('success', 'تم حذف الطلب بنجاح.');
+        $order->delete();
+        // 🔴🔴🔴 التعديل هنا: إعادة التوجيه إلى صفحة قائمة الطلبات 🔴🔴🔴
+        return redirect()->route('admin.orders.index')->with('success', 'تم حذف الطلب بنجاح.');
     }
 }

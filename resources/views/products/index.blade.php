@@ -4,7 +4,7 @@
 <div class="container my-5">
     <h2 class="text-center mb-4"><i class="fas fa-gem me-2"></i> استكشف مجموعتنا من الجواهر</h2>
 
-    {{-- قسم البحث والفلاتر --}}
+    {{-- قسم البحث والفلاتر (بدون تغيير) --}}
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form action="{{ route('products.index') }}" method="GET" class="row g-3 align-items-center">
@@ -82,16 +82,35 @@
                                         <form action="{{ route('cart.store') }}" method="POST" class="d-inline">
                                             @csrf
                                             <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                            <input type="hidden" name="quantity" value="1"> {{-- يمكن إضافة حقل للكمية --}}
+                                            <input type="hidden" name="quantity" value="1">
                                             <button type="submit" class="btn btn-success btn-sm">إضافة للسلة <i class="fas fa-cart-plus ms-1"></i></button>
                                         </form>
-                                        <form action="{{ route('wishlist.store') }}" method="POST" class="d-inline ms-1">
-                                            @csrf
-                                            <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                            <button type="submit" class="btn btn-outline-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="إضافة للمفضلة">
-                                                <i class="fas fa-heart"></i>
-                                            </button>
-                                        </form>
+
+                                        {{-- 🔴🔴🔴 التعديل هنا: زر المفضلة 🔴🔴🔴 --}}
+                                        @php
+                                            // البحث عن عنصر المفضلة المرتبط بالمنتج الحالي
+                                            $wishlistItem = $userWishlistItems->firstWhere('product_id', $product->id);
+                                        @endphp
+
+                                        @if ($wishlistItem)
+                                            {{-- المنتج موجود في المفضلة، اعرض زر الحذف --}}
+                                            <form action="{{ route('wishlist.destroy', $wishlistItem->id) }}" method="POST" class="d-inline ms-1">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="إزالة من المفضلة">
+                                                    <i class="fas fa-heart-crack"></i> {{-- أيقونة قلب مكسور أو فارغ --}}
+                                                </button>
+                                            </form>
+                                        @else
+                                            {{-- المنتج غير موجود في المفضلة، اعرض زر الإضافة --}}
+                                            <form action="{{ route('wishlist.store') }}" method="POST" class="d-inline ms-1">
+                                                @csrf
+                                                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="إضافة للمفضلة">
+                                                    <i class="fas fa-heart"></i>
+                                                </button>
+                                            </form>
+                                        @endif
                                     @endif
                                 @endauth
                             </div>
@@ -102,7 +121,7 @@
         </div>
 
         <div class="d-flex justify-content-center mt-5">
-            {{ $products->links('pagination::bootstrap-5') }} {{-- استخدام تصميم Bootstrap للترقيم --}}
+            {{ $products->links('pagination::bootstrap-5') }}
         </div>
     @endif
 </div>

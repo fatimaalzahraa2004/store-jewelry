@@ -14,22 +14,22 @@
                             @if ($product->album_photos && count($product->album_photos) > 0)
                                 @foreach ($product->album_photos as $key => $photo)
                                     <div class="carousel-item {{ $key == 0 ? 'active' : '' }}">
-                                        <img src="{{ asset('storage/' . $photo) }}" class="d-block w-100 rounded" alt="{{ $product->product_name }}" style="height: 400px; object-fit: contain;">
+                                        <img src="{{ asset('storage/' . $photo) }}" class="d-block w-100 rounded product-image-zoom" alt="{{ $product->product_name }}" style="height: 400px; object-fit: contain;">
                                     </div>
                                 @endforeach
                             @else
                                 <div class="carousel-item active">
-                                    <img src="{{ asset('images/placeholder.png') }}" class="d-block w-100 rounded" alt="صورة غير متوفرة" style="height: 400px; object-fit: contain;">
+                                    <img src="{{ asset('images/placeholder.png') }}" class="d-block w-100 rounded product-image-zoom" alt="صورة غير متوفرة" style="height: 400px; object-fit: contain;">
                                 </div>
                             @endif
                         </div>
                         @if ($product->album_photos && count($product->album_photos) > 1)
                             <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
-                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="carousel-control-icon-custom"><i class="fas fa-chevron-left fa-2x"></i></span>
                                 <span class="visually-hidden">السابق</span>
                             </button>
                             <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
-                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="carousel-control-icon-custom"><i class="fas fa-chevron-right fa-2x"></i></span>
                                 <span class="visually-hidden">التالي</span>
                             </button>
                         @endif
@@ -88,11 +88,21 @@
                                 </div>
                                 <button type="submit" class="btn btn-success btn-lg"><i class="fas fa-cart-plus me-2"></i> إضافة إلى السلة</button>
                             </form>
-                            <form action="{{ route('wishlist.store') }}" method="POST" class="d-grid gap-2">
-                                @csrf
-                                <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                <button type="submit" class="btn btn-outline-danger btn-lg"><i class="fas fa-heart me-2"></i> إضافة إلى المفضلة</button>
-                            </form>
+
+                            {{-- زر المفضلة --}}
+                            @if ($isProductInWishlist)
+                                <form action="{{ route('wishlist.destroy', $wishlistItemId) }}" method="POST" class="d-grid gap-2">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-lg"><i class="fas fa-heart-crack me-2"></i> إزالة من المفضلة</button>
+                                </form>
+                            @else
+                                <form action="{{ route('wishlist.store') }}" method="POST" class="d-grid gap-2">
+                                    @csrf
+                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                    <button type="submit" class="btn btn-outline-danger btn-lg"><i class="fas fa-heart me-2"></i> إضافة إلى المفضلة</button>
+                                </form>
+                            @endif
                         @else
                             <p class="alert alert-warning text-center">قم بتسجيل الدخول كمشتري لإضافة المنتج إلى السلة أو المفضلة.</p>
                         @endif
@@ -119,14 +129,16 @@
                                         <label for="rating_value" class="form-label">تقييمك (من 0.5 إلى 5.0):</label>
                                         <input type="number" name="rating_value" id="rating_value" class="form-control @error('rating_value') is-invalid @enderror" step="0.5" min="0.5" max="5.0" value="{{ old('rating_value', $product->ratings->where('user_id', Auth::id())->first()->rating_value ?? '') }}" required>
                                         @error('rating_value')
-                                            <span class="invalid-feedback" role="alert"><strong></strong></span>
+                                            @php($message = $message ?? 'خطأ غير معروف')
+                                            <span class="invalid-feedback" role="alert"><strong>{{ $message }}</strong></span>
                                         @enderror
                                     </div>
                                     <div class="mb-3">
                                         <label for="comment" class="form-label">تعليقك (اختياري):</label>
                                         <textarea name="comment" id="comment" class="form-control @error('comment') is-invalid @enderror" rows="3">{{ old('comment', $product->ratings->where('user_id', Auth::id())->first()->comment ?? '') }}</textarea>
                                         @error('comment')
-                                            <span class="invalid-feedback" role="alert"><strong></strong></span>
+                                            @php($message = $message ?? 'خطأ غير معروف')
+                                            <span class="invalid-feedback" role="alert"><strong>{{ $message }}</strong></span>
                                         @enderror
                                     </div>
                                     <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane me-2"></i> أرسل التقييم</button>

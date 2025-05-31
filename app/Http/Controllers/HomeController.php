@@ -28,7 +28,7 @@ class HomeController extends Controller
         if (Auth::user()->isAdmin()) {
             return redirect()->route('admin.dashboard'); // أو view('admin.home')
         } elseif (Auth::user()->isSeller()) {
-            return redirect()->route('seller.dashboard'); // أو view('seller.home')
+            return redirect()->route('seller.products.index'); // أو view('seller.home')
         } else { // المستخدم العادي (المشتري)
             return view('home'); // الصفحة الرئيسية الافتراضية للمستخدمين العاديين
         }

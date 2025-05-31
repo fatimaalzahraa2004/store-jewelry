@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="rtl"> {{-- إضافة dir="rtl" لدعم العربية --}}
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="rtl">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,23 +12,23 @@
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"> {{-- Font Awesome --}}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     <style>
         body {
             font-family: 'Nunito', sans-serif;
-            background-color: #f8f9fa; /* لون خلفية فاتح */
+            background-color: #f8f9fa;
         }
         .navbar {
-            background-color: #343a40 !important; /* لون داكن لشريط التنقل */
+            background-color: #343a40 !important;
         }
         .navbar-brand, .nav-link {
-            color: #ffffff !important; /* نص أبيض */
+            color: #ffffff !important;
         }
         .navbar-brand:hover, .nav-link:hover {
-            color: #ffc107 !important; /* ذهبي عند التمرير */
+            color: #ffc107 !important;
         }
         .dropdown-menu {
             background-color: #343a40;
@@ -41,12 +41,12 @@
             color: #ffc107;
         }
         .card {
-            border-radius: 0.75rem; /* حواف دائرية للبطاقات */
-            border: none; /* إزالة الحدود الافتراضية للبطاقة */
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); /* ظل خفيف */
+            border-radius: 0.75rem;
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
         }
         .btn-primary {
-            background-color: #007bff; /* أزرق أساسي */
+            background-color: #007bff;
             border-color: #007bff;
         }
         .btn-primary:hover {
@@ -72,7 +72,7 @@
         .btn-warning {
             background-color: #ffc107;
             border-color: #ffc107;
-            color: #343a40; /* نص داكن لزر أصفر */
+            color: #343a40;
         }
         .btn-warning:hover {
             background-color: #e0a800;
@@ -86,7 +86,7 @@
             background-color: #c82333;
             border-color: #c82333;
         }
-        .bg-gold { /* لون ذهبي مخصص */
+        .bg-gold {
             background-color: #ffd700;
         }
         .text-gold {
@@ -116,16 +116,46 @@
         .hero-section p {
             font-size: 1.5rem;
         }
-        /* لتحديد حجم الصور في المنتجات */
         .product-card-img {
-            height: 200px; /* ارتفاع ثابت للصور في الكروت */
-            object-fit: cover; /* لضمان تغطية الصورة للمساحة دون تشوه */
+            height: 200px;
+            object-fit: cover;
             border-top-left-radius: 0.75rem;
             border-top-right-radius: 0.75rem;
         }
-        /* تصميم للنجوم في التقييمات */
         .stars .fa-star {
-            color: #ffd700; /* لون ذهبي للنجوم */
+            color: #ffd700;
+        }
+
+        /* 🔴🔴🔴 CSS الجديد لأسهم الكاروسيل 🔴🔴🔴 */
+        .carousel-control-icon-custom {
+            background-color: rgba(0, 0, 0, 0.5); /* خلفية شبه شفافة */
+            border-radius: 50%; /* لجعلها دائرية */
+            width: 50px; /* حجم الأيقونة */
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffc107; /* لون ذهبي للأيقونات */
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .carousel-control-icon-custom:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #ffffff; /* لون أبيض عند التمرير */
+        }
+        .carousel-control-prev, .carousel-control-next {
+            width: 8%; /* لزيادة منطقة النقر */
+        }
+        .carousel-control-prev-icon, .carousel-control-next-icon {
+            display: none; /* إخفاء الأيقونات الافتراضية لـ Bootstrap */
+        }
+
+        /* 🔴🔴🔴 CSS الجديد لتكبير الصورة عند التمرير 🔴🔴🔴 */
+        .product-image-zoom {
+            transition: transform 0.5s ease-in-out; /* تأثير انتقال سلس */
+            cursor: zoom-in; /* تغيير شكل المؤشر */
+        }
+        .product-image-zoom:hover {
+            transform: scale(2.55); /* تكبير الصورة بنسبة 5% */
         }
     </style>
 </head>
@@ -161,7 +191,7 @@
 
                             @if(Auth::user()->isSeller())
                                 <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('seller.dashboard') }}">{{ __('لوحة البائع') }} <i class="fas fa-store"></i></a>
+                                    <a class="nav-link" href="{{ route('seller.products.index') }}">{{ __('لوحة البائع') }} <i class="fas fa-store"></i></a>
                                 </li>
                             @endif
 
@@ -250,7 +280,7 @@
 
         <footer class="footer mt-auto py-3 bg-dark">
             <div class="container text-center">
-                <p>&copy; {{ date('Y') }} متجر الجواهر. جميع الحقوق محفوظة.</p>
+                <p>© {{ date('Y') }} متجر الجواهر. جميع الحقوق محفوظة.</p>
                 <div class="social-icons">
                     <a href="#" class="text-white me-2"><i class="fab fa-facebook-f"></i></a>
                     <a href="#" class="text-white me-2"><i class="fab fa-twitter"></i></a>

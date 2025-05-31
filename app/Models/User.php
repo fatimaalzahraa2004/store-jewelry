@@ -100,4 +100,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Rating::class, 'user_id');
     }
+    // 🔴🔴🔴 أضف هذه العلاقة الجديدة 🔴🔴🔴
+    // قائمة المفضلة الخاصة بهذا المستخدم
+    public function wishlists(): HasMany
+    {
+        return $this->hasMany(Wishlist::class, 'user_id');
+    }
 }
