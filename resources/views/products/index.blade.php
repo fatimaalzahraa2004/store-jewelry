@@ -1,128 +1,158 @@
-@extends('layouts.app')
+@extends('layouts.template')
+
+@section('title', 'المتجر - تصفح المنتجات')
 
 @section('content')
-<div class="container my-5">
-    <h2 class="text-center mb-4"><i class="fas fa-gem me-2"></i> استكشف مجموعتنا من الجواهر</h2>
-
-    {{-- قسم البحث والفلاتر (بدون تغيير) --}}
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <form action="{{ route('products.index') }}" method="GET" class="row g-3 align-items-center">
-                <div class="col-md-4">
-                    <label for="search" class="form-label visually-hidden">بحث</label>
-                    <input type="text" name="search" id="search" class="form-control" placeholder="ابحث باسم المنتج أو النوع..." value="{{ request('search') }}">
+<!--== Page Title Area Start ==-->
+<div id="page-title-area">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center">
+                <div class="page-title-content">
+                    <h1>المتجر</h1>
+                    <ul class="breadcrumb">
+                        <li><a href="{{ url('/') }}">الرئيسية</a></li>
+                        <li><a href="{{ route('products.index') }}" class="active">المتجر</a></li>
+                    </ul>
                 </div>
-                <div class="col-md-3">
-                    <label for="type_id" class="form-label visually-hidden">الصنف</label>
-                    <select name="type_id" id="type_id" class="form-select">
-                        <option value="">جميع الأصناف</option>
-                        @foreach ($productTypes as $type)
-                            <option value="{{ $type->id }}" {{ request('type_id') == $type->id ? 'selected' : '' }}>
-                                {{ $type->type_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="min_price" class="form-label visually-hidden">الحد الأدنى للسعر</label>
-                    <input type="number" name="min_price" id="min_price" class="form-control" placeholder="السعر من" value="{{ request('min_price') }}">
-                </div>
-                <div class="col-md-2">
-                    <label for="max_price" class="form-label visually-hidden">الحد الأقصى للسعر</label>
-                    <input type="number" name="max_price" id="max_price" class="form-control" placeholder="السعر إلى" value="{{ request('max_price') }}">
-                </div>
-                <div class="col-md-1">
-                    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter"></i></button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
+</div>
+<!--== Page Title Area End ==-->
 
-    {{-- قائمة المنتجات --}}
-    @if ($products->isEmpty())
-        <div class="alert alert-info text-center" role="alert">
-            لا توجد منتجات مطابقة لمعايير البحث الخاصة بك.
-        </div>
-    @else
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-            @foreach ($products as $product)
-                <div class="col">
-                    <div class="card h-100 product-card shadow-sm animate__animated animate__fadeInUp">
-                        @if ($product->album_photos && count($product->album_photos) > 0)
-                            <img src="{{ asset('storage/' . $product->album_photos[0]) }}" class="card-img-top product-card-img" alt="{{ $product->product_name }}">
-                        @else
-                            <img src="{{ asset('images/placeholder.png') }}" class="card-img-top product-card-img" alt="صورة غير متوفرة">
-                        @endif
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title text-primary">{{ $product->product_name }}</h5>
-                            <p class="card-text text-muted">{{ $product->type->type_name ?? 'غير محدد' }}</p>
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="fw-bold fs-5 text-gold">{{ number_format($product->price, 2) }} $</span>
-                                @if ($product->rating)
-                                    <div class="stars">
-                                        @for ($i = 1; $i <= 5; $i++)
-                                            @if ($i <= $product->rating)
-                                                <i class="fas fa-star"></i>
-                                            @elseif ($i - 0.5 <= $product->rating)
-                                                <i class="fas fa-star-half-alt"></i>
-                                            @else
-                                                <i class="far fa-star"></i>
-                                            @endif
-                                        @endfor
-                                        <small class="text-muted">({{ $product->rating }})</small>
+<!--== Page Content Wrapper Start ==-->
+<div id="page-content-wrapper" class="p-9">
+    <div class="container">
+        <div class="row">
+            <!-- Sidebar Area Start -->
+            <div class="col-lg-3 mt-5 mt-lg-0 order-last order-lg-first">
+                <div id="sidebar-area-wrap">
+                    <!-- Single Sidebar Item Start -->
+                    <div class="single-sidebar-wrap">
+                        <h2 class="sidebar-title">فلترة المنتجات</h2>
+                        <div class="sidebar-body">
+                            <form action="{{ route('products.index') }}" method="GET">
+                                <div class="shopping-option">
+                                    <div class="shopping-option-item">
+                                        <h4>بحث بالاسم</h4>
+                                        <input type="text" name="search" class="form-control mb-3" placeholder="ابحث..." value="{{ request('search') }}">
+                                    </div>
+
+                                    <div class="shopping-option-item">
+                                        <h4>الأصناف</h4>
+                                        <ul class="sidebar-list">
+                                            @foreach ($productTypes as $type)
+                                            <li><a href="{{ route('products.index', ['type_id' => $type->id]) }}">{{ $type->type_name }}</a></li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+
+                                    <div class="shopping-option-item">
+                                        <h4>السعر</h4>
+                                        <div class="d-flex align-items-center">
+                                            <input type="number" name="min_price" class="form-control" placeholder="من" value="{{ request('min_price') }}">
+                                            <span class="mx-2">-</span>
+                                            <input type="number" name="max_price" class="form-control" placeholder="إلى" value="{{ request('max_price') }}">
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-add-to-cart mt-3 w-100">تطبيق الفلتر</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- Single Sidebar Item End -->
+                </div>
+            </div>
+            <!-- Sidebar Area End -->
+
+            <!-- Shop Page Content Start -->
+            <div class="col-lg-9">
+                <div class="shop-page-content-wrap">
+                    <div class="products-settings-option d-block d-md-flex">
+                        <div class="product-cong-left d-flex align-items-center">
+                            <span class="show-items">عرض {{ $products->firstItem() }} - {{ $products->lastItem() }} من {{ $products->total() }} منتج</span>
+                        </div>
+                    </div>
+
+                    <div class="shop-page-products-wrap">
+                        <div class="products-wrapper">
+                            <div class="row">
+                                @if ($products->isEmpty())
+                                    <div class="col-12">
+                                        <div class="alert alert-info text-center" role="alert">
+                                            لا توجد منتجات مطابقة لمعايير البحث الخاصة بك.
+                                        </div>
                                     </div>
                                 @else
-                                    <small class="text-muted">لا توجد تقييمات</small>
+                                    @foreach ($products as $product)
+                                    <div class="col-lg-4 col-sm-6">
+                                        <div class="single-product-item text-center">
+                                            <figure class="product-thumb">
+                                                <a href="{{ route('products.show', $product->id) }}">
+                                                    <img src="{{ $product->album_photos && count($product->album_photos) > 0 ? asset('storage/' . $product->album_photos[0]) : asset('template/img/placeholder.png') }}" alt="{{ $product->product_name }}" class="img-fluid">
+                                                </a>
+                                            </figure>
+
+                                            <div class="product-details">
+                                                <h2><a href="{{ route('products.show', $product->id) }}">{{ $product->product_name }}</a></h2>
+                                                @if ($product->rating)
+                                                    <div class="rating">
+                                                        @for ($i = 1; $i <= 5; $i++)
+                                                            @if ($i <= $product->rating) <i class="fa fa-star"></i>
+                                                            @elseif ($i - 0.5 <= $product->rating) <i class="fa fa-star-half-o"></i>
+                                                            @else <i class="fa fa-star-o"></i>
+                                                            @endif
+                                                        @endfor
+                                                    </div>
+                                                @endif
+                                                <span class="price">${{ number_format($product->price, 2) }}</span>
+                                                <p class="products-desc">{{ $product->shape ?? $product->type->type_name ?? 'قطعة مجوهرات فريدة' }}</p>
+                                                
+                                                @auth
+                                                    @if(Auth::user()->isBuyer())
+                                                    <form action="{{ route('cart.store') }}" method="POST" class="d-inline-block">
+                                                        @csrf
+                                                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                                        <input type="hidden" name="quantity" value="1">
+                                                        <button type="submit" class="btn btn-add-to-cart">+ إضافة للسلة</button>
+                                                    </form>
+                                                    
+                                                    @php $wishlistItem = $userWishlistItems->firstWhere('product_id', $product->id); @endphp
+                                                    @if ($wishlistItem)
+                                                        <form action="{{ route('wishlist.destroy', $wishlistItem->id) }}" method="POST" class="d-inline-block">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn btn-add-to-cart btn-whislist" title="إزالة من المفضلة"><i class="fa fa-heart"></i></button>
+                                                        </form>
+                                                    @else
+                                                        <form action="{{ route('wishlist.store') }}" method="POST" class="d-inline-block">
+                                                            @csrf
+                                                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                                            <button type="submit" class="btn btn-add-to-cart btn-whislist" title="إضافة للمفضلة"><i class="fa fa-heart-o"></i></button>
+                                                        </form>
+                                                    @endif
+                                                    @endif
+                                                @endauth
+                                            </div>
+                                            @if ($product->status == 'جديد') <span class="product-bedge">جديد</span> @endif
+                                        </div>
+                                    </div>
+                                    @endforeach
                                 @endif
-                            </div>
-                            <div class="mt-auto d-flex justify-content-between align-items-center">
-                                <a href="{{ route('products.show', $product->id) }}" class="btn btn-outline-info btn-sm">عرض التفاصيل <i class="fas fa-eye ms-1"></i></a>
-                                @auth
-                                    @if (Auth::user()->isBuyer())
-                                        <form action="{{ route('cart.store') }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                            <input type="hidden" name="quantity" value="1">
-                                            <button type="submit" class="btn btn-success btn-sm">إضافة للسلة <i class="fas fa-cart-plus ms-1"></i></button>
-                                        </form>
-
-                                        {{-- 🔴🔴🔴 التعديل هنا: زر المفضلة 🔴🔴🔴 --}}
-                                        @php
-                                            // البحث عن عنصر المفضلة المرتبط بالمنتج الحالي
-                                            $wishlistItem = $userWishlistItems->firstWhere('product_id', $product->id);
-                                        @endphp
-
-                                        @if ($wishlistItem)
-                                            {{-- المنتج موجود في المفضلة، اعرض زر الحذف --}}
-                                            <form action="{{ route('wishlist.destroy', $wishlistItem->id) }}" method="POST" class="d-inline ms-1">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="إزالة من المفضلة">
-                                                    <i class="fas fa-heart-crack"></i> {{-- أيقونة قلب مكسور أو فارغ --}}
-                                                </button>
-                                            </form>
-                                        @else
-                                            {{-- المنتج غير موجود في المفضلة، اعرض زر الإضافة --}}
-                                            <form action="{{ route('wishlist.store') }}" method="POST" class="d-inline ms-1">
-                                                @csrf
-                                                <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                                <button type="submit" class="btn btn-outline-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="إضافة للمفضلة">
-                                                    <i class="fas fa-heart"></i>
-                                                </button>
-                                            </form>
-                                        @endif
-                                    @endif
-                                @endauth
                             </div>
                         </div>
                     </div>
-                </div>
-            @endforeach
-        </div>
 
-        <div class="d-flex justify-content-center mt-5">
-            {{ $products->links('pagination::bootstrap-5') }}
+                    <div class="products-settings-option d-block d-md-flex mt-4">
+                        {{-- Laravel Pagination --}}
+                        {{ $products->appends(request()->query())->links('vendor.pagination.template-custom') }}
+                    </div>
+                </div>
+            </div>
+            <!-- Shop Page Content End -->
         </div>
-    @endif
+    </div>
 </div>
+<!--== Page Content Wrapper End ==-->
 @endsection

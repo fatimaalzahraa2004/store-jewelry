@@ -9,6 +9,7 @@ use App\Http\Controllers\RatingController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SellerProductController;
+use App\Http\Controllers\HomePageController; // ⬅️ إضافة هذا الاستيراد
 
 // استيراد متحكمات المدير
 use App\Http\Controllers\AdminController;
@@ -30,10 +31,9 @@ use App\Http\Controllers\Admin\ProductTypeController as AdminProductTypeControll
 
 // مسارات عامة (للجميع: زائر، مشتري، بائع، مدير)
 // ------------------------------------------------------------------------
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [HomePageController::class, 'index'])->name('welcome');
 
+Route::get('/house',[HomePageController::class, 'house'])->name('house');
 // مسارات تسجيل الدخول، التسجيل، إعادة تعيين كلمة المرور (مقدمة من Laravel UI)
 Auth::routes();
 
